@@ -71,6 +71,12 @@ class CoinGeckoViewModel : ViewModel() {
         }
     }
 
+    fun updateCoinGeckoList(newList: List<CoinGeckoTable>) {
+        mutableLiveData.apply {
+            value = newList
+        }
+    }
+
     fun refreshCoinGeckoList() {
         mutableLiveData.apply {
             destinationService.getCoinGeckoPing().enqueue(object :

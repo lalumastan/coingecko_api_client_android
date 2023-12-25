@@ -40,6 +40,21 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            R.id.action_search -> {
+                val navHostFragment = supportFragmentManager.fragments.first() as? NavHostFragment
+                if (navHostFragment != null) {
+                    val childFragments = navHostFragment.childFragmentManager.fragments
+                    runOnUiThread {
+                        childFragments.forEach { fragment ->
+                            if (fragment is CoinGeckoFragment) {
+                                fragment.setupSearch(item)
+                            }
+                        }
+                    }
+                }
+                true
+            }
+
             R.id.action_signout -> {
                 finishAndRemoveTask()
                 true
@@ -83,7 +98,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun reload() {
+    private fun reload() {
         val navHostFragment = supportFragmentManager.fragments.first() as? NavHostFragment
         if (navHostFragment != null) {
             val childFragments = navHostFragment.childFragmentManager.fragments

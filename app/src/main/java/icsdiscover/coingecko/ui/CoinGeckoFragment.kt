@@ -6,10 +6,15 @@ import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.widget.Filter
+import android.widget.Filterable
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DiffUtil
@@ -19,6 +24,7 @@ import icsdiscover.coingecko.R
 import icsdiscover.coingecko.api.model.CoinGeckoTable
 import icsdiscover.coingecko.databinding.FragmentCoingeckoBinding
 import icsdiscover.coingecko.databinding.ItemCoingeckoBinding
+import icsdiscover.coingecko.ui.CoinGeckoFragment.Companion.COIN_GECKO_VIEW_MODEL
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.text.DecimalFormat
@@ -35,12 +41,12 @@ import java.util.Locale
 class CoinGeckoFragment : Fragment() {
 
     private var _binding: FragmentCoingeckoBinding? = null
-    private var coinGeckoViewModel: CoinGeckoViewModel? = null
     private var coinGeckoAdapter: CoinGeckoAdapter? = null
 
     companion object {
         var FILE_NAME = "crypto_watch"
         var ACTIVITY: Activity? = null
+        var COIN_GECKO_VIEW_MODEL: CoinGeckoViewModel? = null
     }
 
     // This property is only valid between onCreateView and
@@ -61,8 +67,8 @@ class CoinGeckoFragment : Fragment() {
         val recyclerView = binding.recyclerviewCoingecko
         coinGeckoAdapter = CoinGeckoAdapter()
         recyclerView.adapter = coinGeckoAdapter
-        coinGeckoViewModel = ViewModelProvider(this)[CoinGeckoViewModel::class.java]
-        coinGeckoViewModel!!.liveData!!.observe(viewLifecycleOwner) {
+        COIN_GECKO_VIEW_MODEL = ViewModelProvider(this)[CoinGeckoViewModel::class.java]
+        COIN_GECKO_VIEW_MODEL!!.liveData.observe(viewLifecycleOwner) {
             coinGeckoAdapter!!.submitList(it)
         }
 
@@ -70,10 +76,25 @@ class CoinGeckoFragment : Fragment() {
     }
 
     fun reload() {
-        coinGeckoViewModel?.refreshCoinGeckoList()
+        COIN_GECKO_VIEW_MODEL?.refreshCoinGeckoList()
         ACTIVITY?.runOnUiThread {
             coinGeckoAdapter?.notifyDataSetChanged()
         }
+    }
+
+    fun setupSearch(item: MenuItem) {
+        val searchView = item.actionView as SearchView?
+        searchView!!.imeOptions = EditorInfo.IME_ACTION_DONE
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String): Boolean {
+                coinGeckoAdapter?.filter?.filter(newText)
+                return false
+            }
+        })
     }
 
     override fun onDestroyView() {
@@ -96,7 +117,7 @@ class CoinGeckoFragment : Fragment() {
                 newItem: CoinGeckoTable
             ): Boolean =
                 oldItem == newItem
-        }) {
+        }), Filterable {
 
         val currencyFormat: NumberFormat = NumberFormat.getCurrencyInstance()
         val decimalFormat: DecimalFormat = DecimalFormat("#,###,###,##0.00")
@@ -116,7 +137,7 @@ class CoinGeckoFragment : Fragment() {
             )
             holder.itemTextView.text =
                 coinGeckoTable.name + " (" + coinGeckoTable.symbol.uppercase() + ")"
-            holder.priceTextView!!.text =
+            holder.priceTextView.text =
                 "${currencyFormat.format(coinGeckoTable.current_price)} (${
                     currencyFormat.format(coinGeckoTable.price_change_24h)
                 }) ${upOrDown}"
@@ -152,6 +173,10 @@ class CoinGeckoFragment : Fragment() {
                 }
             }
         }
+
+        override fun getFilter(): Filter {
+            return CoinGeckoListFilter()
+        }
     }
 
     class TransformViewHolder(binding: ItemCoingeckoBinding) :
@@ -163,4 +188,39 @@ class CoinGeckoFragment : Fragment() {
         val hiloTextView: TextView? = binding.textViewHilo
         val volumeTextView: TextView? = binding.textViewVolume
     }
+}
+
+class CoinGeckoListFilter : Filter() {
+    private val coinGeckoTableList: ArrayList<CoinGeckoTable> =
+        COIN_GECKO_VIEW_MODEL?.liveData?.value?.let { ArrayList<CoinGeckoTable>(it) }!!
+
+    override fun performFiltering(constraint: CharSequence?): FilterResults {
+        val filteredList: MutableList<CoinGeckoTable> = ArrayList<CoinGeckoTable>()
+        val filterPattern: String =
+            constraint.toString().lowercase(Locale.getDefault()).trim { it <= ' ' }
+        for (item in coinGeckoTableList) {
+            if (item.name.lowercase(Locale.ROOT).contains(filterPattern) || item.symbol.lowercase(
+                    Locale.ROOT
+                ).contains(filterPattern)
+            ) {
+                filteredList.add(item)
+            }
+        }
+        val results = FilterResults()
+        results.values = filteredList
+        return results
+    }
+
+    override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
+        if (constraint.isNullOrEmpty()) {
+            COIN_GECKO_VIEW_MODEL?.refreshCoinGeckoList()
+        } else {
+            coinGeckoTableList.clear()
+            if (results != null) {
+                coinGeckoTableList.addAll(results.values as Collection<CoinGeckoTable>)
+            }
+            COIN_GECKO_VIEW_MODEL?.updateCoinGeckoList(coinGeckoTableList)
+        }
+    }
+
 }
