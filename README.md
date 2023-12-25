@@ -1,4 +1,4 @@
-# How to Create Responsive  Crypto Market Watch Android Application using CoinGecko API
+# How to Create Responsive Crypto Market Watch Android Application using Kotlin & CoinGecko API
 
 ### Workflow
 
@@ -52,4 +52,4 @@ D --> F(Android Tablet)
 
 ### Tutorial
 
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=7gzDeE9WerE" target="_blank"><img src="http://img.youtube.com/vi/7gzDeE9WerE/0.jpg" alt="How to Create Responsive  Crypto Market Watch Android Application using CoinGecko API" width="240" height="180" border="10" /></a>
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=3gi_D13YbG4" target="_blank"><img src="http://img.youtube.com/vi/3gi_D13YbG4/0.jpg" alt="How to Create Responsive  Crypto Market Watch Android Application using CoinGecko API" width="240" height="180" border="10" /></a>
