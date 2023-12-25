@@ -26,10 +26,6 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.appBarMain.toolbar)
-
-        //val navHostFragment = (supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main) as NavHostFragment?)!!
-
-        //val navController = navHostFragment.navController
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -61,7 +57,6 @@ class MainActivity : AppCompatActivity() {
             }
 
             R.id.action_refresh -> {
-                //findNavController(R.id.nav_host_fragment_content_main).navigate(R.id.nav_coingecko)
                 reload()
                 true
             }

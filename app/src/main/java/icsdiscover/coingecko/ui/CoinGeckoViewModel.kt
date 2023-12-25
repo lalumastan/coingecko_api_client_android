@@ -43,19 +43,25 @@ class CoinGeckoViewModel : ViewModel() {
 
     val liveData: MutableLiveData<List<CoinGeckoTable>> = mutableLiveData
 
-    private fun readFromCache(): List<CoinGeckoTable> {
-        val file = File(CoinGeckoFragment.ACTIVITY!!.filesDir, CoinGeckoFragment.FILE_NAME)
-        val fileReader = FileReader(file)
-        val bufferedReader = BufferedReader(fileReader)
-        val stringBuilder = StringBuilder()
-        var line = bufferedReader.readLine()
-        while (line != null) {
-            stringBuilder.append(line).append("\n")
-            line = bufferedReader.readLine()
+    fun readFromCache(): List<CoinGeckoTable> {
+        var list: List<CoinGeckoTable> = ArrayList<CoinGeckoTable>()
+        try {
+            val file = File(CoinGeckoFragment.ACTIVITY!!.filesDir, CoinGeckoFragment.FILE_NAME)
+            val fileReader = FileReader(file)
+            val bufferedReader = BufferedReader(fileReader)
+            val stringBuilder = StringBuilder()
+            var line = bufferedReader.readLine()
+            while (line != null) {
+                stringBuilder.append(line).append("\n")
+                line = bufferedReader.readLine()
+            }
+            bufferedReader.close() // This responce will have Json Format String
+            val arr = Gson().fromJson(stringBuilder.toString(), Array<CoinGeckoTable>::class.java)
+            list = listOf(*arr)
+        } catch (e: Exception) {
+            e.message?.let { Log.e("readFromCache", it) }
         }
-        bufferedReader.close() // This responce will have Json Format String
-        val arr = Gson().fromJson(stringBuilder.toString(), Array<CoinGeckoTable>::class.java)
-        return listOf(*arr)
+        return list
     }
 
     private fun writeToCache(list: List<CoinGeckoTable>) {
@@ -87,7 +93,7 @@ class CoinGeckoViewModel : ViewModel() {
                     responseCoinGeckoPing: Response<CoinGeckoPingResponse>
                 ) {
                     if (responseCoinGeckoPing.isSuccessful) {
-                        var vl: String = responseCoinGeckoPing.body()!!.gecko_says
+                        val vl: String = responseCoinGeckoPing.body()!!.gecko_says
 
                         if (vl.isNotEmpty()) {
                             destinationService.getCoinGeckoTableList().enqueue(object :
@@ -104,7 +110,7 @@ class CoinGeckoViewModel : ViewModel() {
                                         value?.let { writeToCache(it) }
                                     } else {
                                         Log.e(
-                                            "TransformViewModel",
+                                            "CoinGeckoViewModel",
                                             "getCoinGeckoTableList failed"
                                         )
                                         value = readFromCache()
@@ -116,7 +122,7 @@ class CoinGeckoViewModel : ViewModel() {
                                     t: Throwable
                                 ) {
                                     Log.e(
-                                        "TransformViewModel",
+                                        "CoinGeckoViewModel",
                                         "getCoinGeckoTableList failed.  Loading from local cache ..."
                                     )
                                     value = readFromCache()
@@ -124,7 +130,7 @@ class CoinGeckoViewModel : ViewModel() {
                             })
                         }
                     } else {
-                        Log.e("TransformViewModel", "getCoinGeckoPing failed")
+                        Log.e("CoinGeckoViewModel", "getCoinGeckoPing failed")
                         value = readFromCache()
                     }
                 }
@@ -134,7 +140,7 @@ class CoinGeckoViewModel : ViewModel() {
                     t: Throwable
                 ) {
                     Log.e(
-                        "TransformViewModel",
+                        "CoinGeckoViewModel",
                         "getCoinGeckoPing failed.  Loading from local cache ..."
                     )
                     value = readFromCache()

@@ -26,7 +26,10 @@ import icsdiscover.coingecko.databinding.FragmentCoingeckoBinding
 import icsdiscover.coingecko.databinding.ItemCoingeckoBinding
 import icsdiscover.coingecko.ui.CoinGeckoFragment.Companion.COIN_GECKO_VIEW_MODEL
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.InputStream
+import java.net.URL
 import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.util.Locale
@@ -159,17 +162,22 @@ class CoinGeckoFragment : Fragment() {
             GlobalScope.launch {
                 // Tries to get the image and post it in the ImageView
                 // with the help of Handler
-                try {
-                    val `in` = java.net.URL(imageURL).openStream()
-                    val image = BitmapFactory.decodeStream(`in`)
+                var `in`: InputStream? = null
 
-                    imageView.setImageBitmap(image)
-                }
+                while (`in` == null) {
+                    try {
+                        `in` = URL(imageURL).openStream()
+                        val image = BitmapFactory.decodeStream(`in`)
 
-                // If the URL does not point to
-                // image or any other kind of failure
-                catch (e: Exception) {
-                    e.message?.let { Log.e("processImageURL", it) }
+                        imageView.setImageBitmap(image)
+                        break
+                    }
+                    // If the URL does not point to
+                    // image or any other kind of failure
+                    catch (e: Exception) {
+                        e.message?.let { Log.e("processImageURL", it) }
+                    }
+                    delay(100)
                 }
             }
         }
@@ -193,17 +201,23 @@ class CoinGeckoFragment : Fragment() {
 class CoinGeckoListFilter : Filter() {
     private val coinGeckoTableList: ArrayList<CoinGeckoTable> =
         COIN_GECKO_VIEW_MODEL?.liveData?.value?.let { ArrayList<CoinGeckoTable>(it) }!!
+    private val coinGeckoTableFullList: List<CoinGeckoTable>? =
+        COIN_GECKO_VIEW_MODEL?.readFromCache()
+
 
     override fun performFiltering(constraint: CharSequence?): FilterResults {
         val filteredList: MutableList<CoinGeckoTable> = ArrayList<CoinGeckoTable>()
         val filterPattern: String =
             constraint.toString().lowercase(Locale.getDefault()).trim { it <= ' ' }
-        for (item in coinGeckoTableList) {
-            if (item.name.lowercase(Locale.ROOT).contains(filterPattern) || item.symbol.lowercase(
-                    Locale.ROOT
-                ).contains(filterPattern)
-            ) {
-                filteredList.add(item)
+        if (coinGeckoTableFullList != null) {
+            for (item in coinGeckoTableFullList) {
+                if (item.name.lowercase(Locale.ROOT)
+                        .contains(filterPattern) || item.symbol.lowercase(
+                        Locale.ROOT
+                    ).contains(filterPattern)
+                ) {
+                    filteredList.add(item)
+                }
             }
         }
         val results = FilterResults()
@@ -213,7 +227,7 @@ class CoinGeckoListFilter : Filter() {
 
     override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
         if (constraint.isNullOrEmpty()) {
-            COIN_GECKO_VIEW_MODEL?.refreshCoinGeckoList()
+            COIN_GECKO_VIEW_MODEL?.updateCoinGeckoList(coinGeckoTableFullList!!)
         } else {
             coinGeckoTableList.clear()
             if (results != null) {
