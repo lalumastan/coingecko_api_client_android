@@ -46,7 +46,7 @@ D --> F(Android Tablet)
 
 <li><a href="https://developer.android.com/codelabs/basic-android-kotlin-compose-first-app#0">Android Tutorial</a></li>
 
-<li><a href="https://www.coingecko.com/api/documentation">CoinGecko API Documentation</a></li>
+<li><a  href="https://www.coingecko.com/en/api">CoinGecko API (Use referral code CGICSDISCOVER):</a></li>
 
 </ul>
 
