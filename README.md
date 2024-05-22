@@ -31,7 +31,7 @@ D --> F(Android Tablet)
 
 <ul>
 
-<li><a href="https://developer.android.com/studio">Android Studio</a></li>
+<li><a href="https://developer.android.com/studio" target="_new">Android Studio</a></li>
 
 <li><a href="https://developer.android.com/studio/run/managing-avds" target="_new">Create Android Virtual Devices</a></li>
 
@@ -44,9 +44,9 @@ D --> F(Android Tablet)
 
 <ul>
 
-<li><a href="https://developer.android.com/codelabs/basic-android-kotlin-compose-first-app#0">Android Tutorial</a></li>
+<li><a href="https://developer.android.com/codelabs/basic-android-kotlin-compose-first-app#0" target="_new">Android Tutorial</a></li>
 
-<li><a  href="https://www.coingecko.com/en/api">CoinGecko API (Use referral code CGICSDISCOVER):</a></li>
+<li><a  href="https://www.coingecko.com/en/api" target="_new">CoinGecko API (Use referral code CGICSDISCOVER):</a></li>
 
 </ul>
 
